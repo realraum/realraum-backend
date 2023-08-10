@@ -1,0 +1,13 @@
+[package]
+name = "realraum_backend_sounds"
+version = "0.0.0"
+edition = "2021"
+authors = ["Tanja <rust@tanja.pw>"]
+description = "A sound-playing server backend for Realraum"
+documentation = "https://docs.rs/realraum_backend_sounds/latest/realraum_backend_sounds/"
+homepage = "https://github.com/realraum/realraum-backend#readme"
+repository = "https://github.com/realraum/realraum-backend"
+license = "AGPL-3.0-or-later"
+# keywords = []
+# categories = []
+include = ["/src", "/Cargo.toml", "/README.md", "/LICENSE.md"]
