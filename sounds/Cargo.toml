@@ -14,7 +14,6 @@ include = ["/src", "/Cargo.toml", "/README.md", "/LICENSE.md"]
 
 [dependencies]
 axum = { version = "0.6.20", features = ["http2", "macros", "ws"] }
-hyper = { version = "0.14.27", features = ["full"] }
 lazy_static = "1.4.0"
 serde = { version = "1.0.183", features = ["derive"] }
 serde_json = "1.0.104"

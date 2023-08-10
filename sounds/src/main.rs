@@ -1,18 +1,14 @@
-use hyper::{Body, Request, Response};
 use lazy_static::lazy_static;
 use serde::Serialize;
 use serde_json::{json, Value};
-use std::fs;
 
-use std::path::Path;
-use std::process::Command;
-use std::sync::Mutex;
+use std::{fs, path::Path, process::Command, sync::Mutex};
 
 lazy_static! {
     static ref AUDIO_LOCK: Mutex<()> = Mutex::new(());
 }
 
-const BASEPATH: &str = "/home/realraum/welcomesounds";
+const BASE_PATH: &str = "/home/realraum/welcomesounds";
 
 #[derive(Debug, Serialize)]
 struct Sound {
@@ -32,19 +28,20 @@ pub fn play_sound_from_path(filepath: &str) {
             "-nolirc",
             "-ao",
             "alsa",
-            &format!("{}/{}", BASEPATH, filepath),
+            &format!("{}/{}", BASE_PATH, filepath),
         ])
         .spawn()
         .expect("Failed to execute mplayer");
 }
 
+/// Lists all sounds in the [`BASE_PATH`] directory, returning a [`Vec`] of [`Sound`] structs.
 fn get_sounds_list() -> Vec<Sound> {
     let mut sounds = Vec::new();
-    for entry in fs::read_dir(Path::new(BASEPATH)).unwrap() {
+    for entry in fs::read_dir(Path::new(BASE_PATH)).unwrap() {
         if let Ok(entry) = entry {
             if let Some(filename) = entry.file_name().to_str() {
                 let filepath = entry.path();
-                let fname = filepath.strip_prefix(BASEPATH).unwrap_or(&filepath);
+                let fname = filepath.strip_prefix(BASE_PATH).unwrap_or(&filepath);
                 let fname = fname.to_str().unwrap_or("");
                 sounds.push(Sound {
                     name: filename.to_string(),
@@ -56,6 +53,7 @@ fn get_sounds_list() -> Vec<Sound> {
     sounds
 }
 
+/// API endpoint for listing all sounds on `/api/sounds`
 async fn sounds_handler() -> Json<Value> {
     let sounds = get_sounds_list();
     let response = json!(sounds);
@@ -124,7 +122,7 @@ use axum::{routing::get, Json, Router};
 async fn main() {
     // build our application with a single route
     let app = Router::new()
-        .route("/sounds", get(sounds_handler))
+        .route("/api/sounds", get(sounds_handler))
         .route("/", get(|| async { "Hello, World!" }));
 
     // run it with hyper on localhost:3000
