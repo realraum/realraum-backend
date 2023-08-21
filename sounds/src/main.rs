@@ -1,8 +1,10 @@
+use axum::{routing::get, Json, Router};
 use hyper::{Body, Request, Response};
 use lazy_static::lazy_static;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::fs;
+use tower_http::services::ServeDir;
 
 use std::path::Path;
 use std::process::Command;
@@ -81,51 +83,33 @@ async fn play_sound_handler(req: Request<Body>) -> Result<Response<Body>, hyper:
 }
 */
 
-/*
-#[tokio::main]
-async fn main() {
-    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
-    let make_svc = make_service_fn(|_conn| {
-        let sounds_handler = sounds_handler.clone();
-        let play_sound_handler = play_sound_handler.clone();
-        async {
-            Ok::<_, hyper::Error>(service_fn(move |req| {
-                match (req.method(), req.uri().path()) {
-                    (&hyper::Method::GET, "/api/sounds") => sounds_handler(req),
-                    (&hyper::Method::POST, path) if path.starts_with("/api/play/") => {
-                        play_sound_handler(req)
-                    }
-                    _ => {
-                        let response = "Not Found";
-                        Ok(Response::builder()
-                            .status(404)
-                            .header("Content-Type", "text/plain")
-                            .body(Body::from(response))
-                            .unwrap())
-                    }
-                }
-            }))
-        }
-    });
+#[derive(Debug, Deserialize)]
+struct PlaySoundPayload {
+    name: String,
+}
 
-    let server = Server::bind(&addr).serve(make_svc);
-
-    println!("Server started http://{}", addr);
-
-    if let Err(e) = server.await {
-        eprintln!("Server error: {}", e);
+async fn handle_play_sound(Json(payload): Json<PlaySoundPayload>) -> Json<Value> {
+    dbg!(&payload);
+    let filepath = format!("{}/{}", BASEPATH, payload.name);
+    dbg!(&filepath);
+    if Path::new(&filepath).exists() {
+        dbg!("exists");
+        // let _lock = AUDIO_LOCK.lock().unwrap();
+        play_sound_from_path(&payload.name);
+        Json(json!({ "status": "ok" }))
+    } else {
+        dbg!("not exists");
+        Json(json!({ "status": "error", "message": "File not found" }))
     }
 }
-*/
-
-use axum::{routing::get, Json, Router};
 
 #[tokio::main]
 async fn main() {
     // build our application with a single route
     let app = Router::new()
         .route("/sounds", get(sounds_handler))
-        .route("/", get(|| async { "Hello, World!" }));
+        .route("/play/:name", get(handle_play_sound))
+        .nest_service("/", ServeDir::new("static-frontend/"));
 
     // run it with hyper on localhost:3000
     axum::Server::bind(&"0.0.0.0:4242".parse().unwrap())
