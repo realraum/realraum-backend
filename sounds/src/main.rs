@@ -111,6 +111,15 @@ async fn handle_play_sound(Path(sound_path): Path<String>) -> Json<Value> {
     }
 }
 
+async fn handle_killall_mplayer() -> Json<Value> {
+    Command::new("killall")
+        .args(&["mplayer"])
+        .spawn()
+        .expect("Failed to execute killall");
+
+    Json(json!({ "status": "ok", "message": "Killed all mplayer instances" }))
+}
+
 #[tokio::main]
 async fn main() {
     // build our application with a single route
@@ -123,6 +132,7 @@ async fn main() {
                 .nest(
                     "/v1",
                     Router::new()
+                        .route("/killall_mplayer", get(handle_killall_mplayer))
                         .route("/sounds", get(sounds_handler))
                         .route("/play/*name", get(handle_play_sound)),
                 ),
