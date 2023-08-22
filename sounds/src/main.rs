@@ -118,10 +118,14 @@ async fn main() {
         .nest(
             "/api",
             Router::new()
-                .route("/sounds", get(sounds_handler))
-                .route("/play/*name", get(handle_play_sound))
                 .route("/", get(api::greeting))
-                .route("/*any", any(api::fallback)),
+                .route("/*any", any(api::fallback))
+                .nest(
+                    "/v1",
+                    Router::new()
+                        .route("/sounds", get(sounds_handler))
+                        .route("/play/*name", get(handle_play_sound)),
+                ),
         )
         .nest_service(
             "/",
