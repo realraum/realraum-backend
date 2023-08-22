@@ -1,9 +1,13 @@
-use axum::{extract::Path, routing::get, Json, Router};
-use hyper::{Body, Request, Response};
+use axum::{
+    extract::Path,
+    http::{StatusCode, Uri},
+    routing::{any, get},
+    Json, Router,
+};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use tower_http::services::ServeDir;
+use tower_http::services::{ServeDir, ServeFile};
 
 use std::{
     fs,
@@ -111,13 +115,44 @@ async fn handle_play_sound(Path(sound_path): Path<String>) -> Json<Value> {
 async fn main() {
     // build our application with a single route
     let app = Router::new()
-        .route("/sounds", get(sounds_handler))
-        .route("/play/*name", get(handle_play_sound))
-        .nest_service("/", ServeDir::new("static-frontend/"));
+        .nest(
+            "/api",
+            Router::new()
+                .route("/sounds", get(sounds_handler))
+                .route("/play/*name", get(handle_play_sound))
+                .route("/", get(api::greeting))
+                .route("/*any", any(api::fallback)),
+        )
+        .nest_service(
+            "/",
+            ServeDir::new("dist").not_found_service(ServeFile::new("dist/index.html")),
+        );
 
     // run it with hyper on localhost:3000
     axum::Server::bind(&"0.0.0.0:4242".parse().unwrap())
         .serve(app.into_make_service())
         .await
         .unwrap();
+}
+
+mod api {
+    use super::*;
+
+    pub async fn fallback(_: Uri) -> (StatusCode, Json<Value>) {
+        (
+            StatusCode::NOT_FOUND,
+            Json(json!({ "status": "error", "message": "No such API route" })),
+        )
+    }
+
+    pub async fn greeting(_: Uri) -> (StatusCode, Json<Value>) {
+        (
+            StatusCode::OK,
+            Json(json!({
+                "status": "ok",
+                "message": "Welcome to the Realraum Sounds API",
+                "server_version": env!("CARGO_PKG_VERSION"),
+            })),
+        )
+    }
 }
