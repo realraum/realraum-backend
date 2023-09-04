@@ -698,6 +698,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "realraum_backend_projector"
+version = "0.0.0"
+dependencies = [
+ "axum",
+ "hyper",
+ "lazy_static",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower-http",
+]
+
+[[package]]
 name = "realraum_backend_sounds"
 version = "0.0.0"
 dependencies = [
