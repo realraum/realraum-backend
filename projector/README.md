@@ -11,7 +11,7 @@ A projector remote-control server backend for Realraum; work in progress.
 - [Rust](https://www.rust-lang.org/tools/install)
   - Rust is a modern systems programming language focusing on safety, speed, and concurrency
   - It empowers everyone to build reliable and efficient software
-  - Realraum Projector Backend is written in Rust, compiled to WebAssembly, and runs in the browser
+  - Realraum Projector Backend is written in Rust, compiled to ARMv7, and runs on a Raspberry Pi
 - Cross compilation to ARMv7
   - Get something like `gcc-arm-linux-gnueabihf` from your package manager
   - `rustup target add armv7-unknown-linux-gnueabihf`
