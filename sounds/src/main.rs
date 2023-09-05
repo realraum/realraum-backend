@@ -122,7 +122,6 @@ async fn handle_killall_mplayer() -> Json<Value> {
 
 #[tokio::main]
 async fn main() {
-    // build our application with a single route
     let app = Router::new()
         .nest(
             "/api",
