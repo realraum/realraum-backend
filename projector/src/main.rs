@@ -1,17 +1,21 @@
 use std::net::Ipv4Addr;
 
 use axum::{
+    http::HeaderValue,
     routing::{any, get},
     Json, Router,
 };
-use hyper::{StatusCode, Uri};
+use hyper::{Method, StatusCode, Uri};
 use protocol::{
     commands::{input, menu, picture, power, volume},
     Command,
 };
 use serde_json::{json, Value};
 use tokio::{io::AsyncWriteExt, net::TcpStream};
-use tower_http::services::{ServeDir, ServeFile};
+use tower_http::{
+    cors::{Any, CorsLayer},
+    services::{ServeDir, ServeFile},
+};
 
 pub mod protocol;
 
@@ -24,7 +28,14 @@ const PORT: u16 = 41794;
 
 #[tokio::main]
 async fn main() {
+    let cors = CorsLayer::new()
+        // allow `GET` and `POST` when accessing the resource
+        .allow_methods([Method::GET, Method::POST])
+        // allow requests from any origin
+        .allow_origin(Any);
+
     let app = Router::new()
+        .layer(cors)
         .nest(
             "/api",
             Router::new()
@@ -68,11 +79,11 @@ async fn main() {
                                 .route(
                                     "/left",
                                     get(|| handle_command(menu::LEFT)),
-                                // .route(
-                                //     "/left",
-                                //     get(|State(state): State<Arc<Mutex<TcpStream>>>| {
-                                //         handle_command(menu::LEFT, state)
-                                //     }),
+                                    // .route(
+                                    //     "/left",
+                                    //     get(|State(state): State<Arc<Mutex<TcpStream>>>| {
+                                    //         handle_command(menu::LEFT, state)
+                                    //     }),
                                 )
                                 .route("/right", get(|| handle_command(menu::RIGHT)))
                                 .route("/ok", get(|| handle_command(menu::OK))),
