@@ -1,5 +1,5 @@
 // _Creston_ is probably a trademarked name of some legal entity, with which we are not affiliated with whatsoever.
-pub mod creston;
+pub mod commands;
 
 // This is hard-coded for now
 // TODO make this configurable to account for DHCP
