@@ -53,8 +53,8 @@ pub mod commands {
     pub mod power {
         use super::super::{constants, make_command, Command};
 
-        pub const ON: Command = make_command(0x00, constants::POWER_SUFFIX);
-        pub const OFF: Command = make_command(0x01, constants::POWER_SUFFIX);
+        pub const ON: Command = make_command(0x04, constants::POWER_SUFFIX);
+        pub const OFF: Command = make_command(0x05, constants::POWER_SUFFIX);
     }
 
     pub mod menu {

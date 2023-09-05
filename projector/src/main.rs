@@ -18,5 +18,6 @@ async fn main() {
     let mut stream = TcpStream::connect((IP_ADDRESS, PORT)).await.unwrap();
 
     // Turn the projector on
-    stream.write_all(&commands::power::ON).await.unwrap();
+    stream.write_all(dbg!(&commands::power::ON)).await.unwrap();
+    // stream.write_all(&commands::power::OFF).await.unwrap();
 }
