@@ -21,7 +21,8 @@ pub mod protocol;
 
 // This is hard-coded for now
 // TODO make this configurable to account for DHCP
-const IP_ADDRESS: Ipv4Addr = Ipv4Addr::new(192, 168, 127, 26);
+// Or just use a fixed IP address in the projector like we did
+const IP_ADDRESS: Ipv4Addr = Ipv4Addr::new(192, 168, 33, 41);
 
 // TODO make this configurable
 const PORT: u16 = 41794;
