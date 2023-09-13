@@ -9,3 +9,11 @@ The frontend can be found in [realraum-frontend](https://github.com/realraum/rea
 which is a separate repository.
 It's written in [Leptos](https://leptos.dev/), a Solid-inspired web framework for Rust,
 though it may be rewritten in [Solid.js](https://www.solidjs.com/) in the future.
+
+Use
+
+```zsh
+cross build --release --target=arm-unknown-linux-gnueabihf
+```
+
+to build for the Raspberry Pi using [cross](https://github.com/cross-rs/cross).

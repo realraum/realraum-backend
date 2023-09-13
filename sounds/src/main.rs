@@ -142,6 +142,7 @@ async fn main() {
         );
 
     // run it with hyper on localhost:3000
+    // axum::Server::bind(&"192.168.127.246:80".parse().unwrap())
     axum::Server::bind(&"0.0.0.0:4242".parse().unwrap())
         .serve(app.into_make_service())
         .await
