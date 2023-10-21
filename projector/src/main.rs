@@ -1,4 +1,7 @@
-use std::net::Ipv4Addr;
+use std::{
+    env,
+    net::{Ipv4Addr, SocketAddr},
+};
 
 use axum::{
     http::HeaderValue,
@@ -119,7 +122,12 @@ async fn main() {
         // .with_state(connection)
         ;
 
-    axum::Server::bind(&"0.0.0.0:4201".parse().unwrap())
+    let addr: SocketAddr = env::var("RR_PROJECTOR_ADDR")
+        .map_err(|_| ())
+        .and_then(|s| s.parse().map_err(|_| ()))
+        .unwrap_or_else(|_| "0.0.0.0:4201".parse().unwrap());
+
+    axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
         .unwrap();
