@@ -144,7 +144,7 @@ async fn main() {
 
     // run it with hyper on localhost:3000
     // axum::Server::bind(&"192.168.127.246:80".parse().unwrap())
-    let addr: SocketAddr = env::var("RR_SOUNDS_ADDR")
+    let addr: SocketAddr = env::var("R3_SOUNDS_ADDR")
         .map_err(|_| ())
         .and_then(|s| s.parse().map_err(|_| ()))
         .unwrap_or_else(|_| "0.0.0.0:4242".parse().unwrap());

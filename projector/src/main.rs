@@ -122,7 +122,7 @@ async fn main() {
         // .with_state(connection)
         ;
 
-    let addr: SocketAddr = env::var("RR_PROJECTOR_ADDR")
+    let addr: SocketAddr = env::var("R3_PROJECTOR_ADDR")
         .map_err(|_| ())
         .and_then(|s| s.parse().map_err(|_| ()))
         .unwrap_or_else(|_| "0.0.0.0:4201".parse().unwrap());
