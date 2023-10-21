@@ -17,3 +17,12 @@ cross build --release --target=arm-unknown-linux-gnueabihf
 ```
 
 to build for the Raspberry Pi using [cross](https://github.com/cross-rs/cross).
+
+## Configuration
+
+Provide something like `0.0.0.0:4242` to the env vars
+
+- `R3_SOUNDS_ADDR`, and
+- `R3_PROJECTOR_ADDR`
+
+to configure the ip addresses and ports of the sounds and the projector backends, respectively.
