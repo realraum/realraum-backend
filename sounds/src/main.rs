@@ -17,11 +17,15 @@ use std::{
     sync::Mutex,
 };
 
+const BASE_PATH_FALLBACK: &str = "/home/realraum/welcomesounds";
+
 lazy_static! {
     static ref AUDIO_LOCK: Mutex<()> = Mutex::new(());
+    static ref BASE_PATH: PathBuf = env::var("R3_SOUNDS_BASE_PATH")
+        .map_err(|_| ())
+        .and_then(|s| FsPath::new(&s).canonicalize().map_err(|_| ()))
+        .unwrap_or_else(|_| FsPath::new(BASE_PATH_FALLBACK).to_path_buf());
 }
-
-const BASE_PATH: &str = "/home/realraum/welcomesounds";
 
 #[derive(Debug, Serialize)]
 struct Sound {
@@ -41,7 +45,7 @@ pub fn play_sound_from_path(filepath: &str) {
             "-nolirc",
             "-ao",
             "alsa",
-            &format!("{}/{}", BASE_PATH, filepath),
+            &format!("{}/{}", BASE_PATH.display(), filepath),
         ])
         .spawn()
         .expect("Failed to execute mplayer");
@@ -50,11 +54,11 @@ pub fn play_sound_from_path(filepath: &str) {
 /// Lists all sounds in the [`BASE_PATH`] directory, returning a [`Vec`] of [`Sound`] structs.
 fn get_sounds_list() -> Vec<Sound> {
     let mut sounds = Vec::new();
-    for entry in fs::read_dir(FsPath::new(BASE_PATH)).unwrap() {
+    for entry in fs::read_dir(&*BASE_PATH).unwrap() {
         if let Ok(entry) = entry {
             if let Some(filename) = entry.file_name().to_str() {
                 let filepath = entry.path();
-                let fname = filepath.strip_prefix(BASE_PATH).unwrap_or(&filepath);
+                let fname = filepath.strip_prefix(&*BASE_PATH).unwrap_or(&filepath);
                 let fname = fname.to_str().unwrap_or("");
                 sounds.push(Sound {
                     name: filename.to_string(),
@@ -98,10 +102,12 @@ struct PlaySoundPayload {
 }
 
 async fn handle_play_sound(Path(sound_path): Path<String>) -> Json<Value> {
+    let mut base_path = BASE_PATH.clone();
     dbg!(&sound_path);
-    let filepath = format!("{}/{}", BASE_PATH, sound_path);
+    base_path.push(&sound_path);
+    let filepath = base_path;
     dbg!(&filepath);
-    if FsPath::new(&filepath).exists() {
+    if filepath.exists() {
         dbg!("exists");
         // let _lock = AUDIO_LOCK.lock().unwrap();
         play_sound_from_path(&sound_path);
@@ -148,6 +154,8 @@ async fn main() {
         .map_err(|_| ())
         .and_then(|s| s.parse().map_err(|_| ()))
         .unwrap_or_else(|_| "0.0.0.0:4242".parse().unwrap());
+
+    println!("Starting server on http://{addr}");
 
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
