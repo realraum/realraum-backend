@@ -5,12 +5,15 @@ use axum::{
     Json, Router,
 };
 use lazy_static::lazy_static;
+use rodio::{source::Source, Decoder, OutputStream};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tower_http::services::{ServeDir, ServeFile};
 
 use std::{
-    env, fs,
+    env,
+    fs::{self, File},
+    io::BufReader,
     net::SocketAddr,
     path::{Path as FsPath, PathBuf},
     process::Command,
@@ -25,6 +28,7 @@ lazy_static! {
         .map_err(|_| ())
         .and_then(|s| FsPath::new(&s).canonicalize().map_err(|_| ()))
         .unwrap_or_else(|_| FsPath::new(BASE_PATH_FALLBACK).to_path_buf());
+    // static ref PIPE_OGG
 }
 
 #[derive(Debug, Serialize)]
@@ -39,16 +43,33 @@ struct Sound {
 /// Multiple sounds are prevented by using a global lock.
 pub fn play_sound_from_path(filepath: &str) {
     let _lock = AUDIO_LOCK.lock().unwrap();
-    Command::new("mplayer")
-        .args(&[
-            "-really-quiet",
-            "-nolirc",
-            "-ao",
-            "alsa",
-            &format!("{}/{}", BASE_PATH.display(), filepath),
-        ])
-        .spawn()
-        .expect("Failed to execute mplayer");
+    // Command::new("mplayer")
+    //     .args(&[
+    //         "-really-quiet",
+    //         "-nolirc",
+    //         "-ao",
+    //         "alsa",
+    //         &format!("{}/{}", BASE_PATH.display(), filepath),
+    //     ])
+    //     .spawn()
+    //     .expect("Failed to execute mplayer");
+
+    // Get a output stream handle to the default physical sound device
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+
+    let convert_samples = {
+        // Load a sound from a file, using a path relative to Cargo.toml
+        let file = BufReader::new(File::open(BASE_PATH.join(filepath)).unwrap());
+        // Decode that sound file into a source
+        Decoder::new(file).unwrap().convert_samples()
+    };
+
+    // Play the sound directly on the device
+    stream_handle.play_raw(convert_samples).unwrap();
+
+    // The sound plays in a separate audio thread,
+    // so we need to keep the main thread alive while it's playing.
+    std::thread::sleep(std::time::Duration::from_secs(5));
 }
 
 /// Lists all sounds in the [`BASE_PATH`] directory, returning a [`Vec`] of [`Sound`] structs.
