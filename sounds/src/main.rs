@@ -1,3 +1,4 @@
+use anyhow::Result;
 use axum::{
     extract::Path,
     http::{StatusCode, Uri},
@@ -6,6 +7,8 @@ use axum::{
 };
 use lazy_static::lazy_static;
 use rodio::{source::Source, Decoder, OutputStream};
+use rusqlite::Connection;
+// use rusqlite::NO_PARAMS;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tower_http::services::{ServeDir, ServeFile};
@@ -17,7 +20,7 @@ use std::{
     net::SocketAddr,
     path::{Path as FsPath, PathBuf},
     process::Command,
-    sync::Mutex,
+    sync::{Arc, Mutex},
 };
 
 const BASE_PATH_FALLBACK: &str = "/home/realraum/welcomesounds";
@@ -148,8 +151,36 @@ async fn handle_killall_mplayer() -> Json<Value> {
     Json(json!({ "status": "ok", "message": "Killed all mplayer instances" }))
 }
 
+fn make_some_db() -> Result<Connection> {
+    let db = Connection::open("sounds.db")?;
+
+    db.execute(
+        "CREATE TABLE IF NOT EXISTS sounds (
+            id UID PRIMARY KEY,
+            name TEXT NOT NULL,
+            path TEXT NOT NULL,
+            md5sum BLOB NOT NULL
+        )",
+        [],
+    )?;
+
+    db.execute(
+        "CREATE TABLE IF NOT EXISTS sound_events (
+            id UID PRIMARY KEY,
+            sound_id UID NOT NULL,
+            timestamp DATETIME NOT NULL,
+            FOREIGN KEY (sound_id) REFERENCES sounds(id)
+        )",
+        [],
+    )?;
+
+    Ok(db)
+}
+
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
+    let db = Arc::new(Mutex::new(make_some_db()?));
+
     let app = Router::new()
         .nest(
             "/api",
@@ -167,7 +198,8 @@ async fn main() {
         .nest_service(
             "/",
             ServeDir::new("dist").not_found_service(ServeFile::new("dist/index.html")),
-        );
+        )
+        .with_state(db);
 
     // run it with hyper on localhost:3000
     // axum::Server::bind(&"192.168.127.246:80".parse().unwrap())
@@ -182,6 +214,8 @@ async fn main() {
         .serve(app.into_make_service())
         .await
         .unwrap();
+
+    Ok(())
 }
 
 mod api {

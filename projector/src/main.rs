@@ -31,7 +31,7 @@ const IP_ADDRESS: Ipv4Addr = Ipv4Addr::new(192, 168, 33, 41);
 const PORT: u16 = 41794;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
     let cors = CorsLayer::new()
         // allow `GET` and `POST` when accessing the resource
         .allow_methods([Method::GET, Method::POST])
