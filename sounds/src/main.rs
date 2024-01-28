@@ -45,7 +45,7 @@ struct Sound {
 /// Spawns a new child process and returns immediately.  
 /// Multiple sounds are prevented by using a global lock.
 pub fn play_sound_from_path(filepath: &str) {
-    let _lock = AUDIO_LOCK.lock().unwrap();
+    // let _lock = AUDIO_LOCK.lock().unwrap();
     // Command::new("mplayer")
     //     .args(&[
     //         "-really-quiet",
@@ -67,12 +67,21 @@ pub fn play_sound_from_path(filepath: &str) {
         Decoder::new(file).unwrap().convert_samples()
     };
 
-    // Play the sound directly on the device
-    stream_handle.play_raw(convert_samples).unwrap();
+    // HACK Play the sound directly on the device in a new thread.
+    std::thread::spawn(move || {
+        stream_handle.play_raw(convert_samples).unwrap();
+
+        // The sound plays in a separate audio thread,
+        // so we need to keep the main thread alive while it's playing.
+        std::thread::sleep(std::time::Duration::from_secs(5));
+    })
+    .join()
+    .unwrap();
+    // stream_handle.play_raw(convert_samples).unwrap();
 
     // The sound plays in a separate audio thread,
     // so we need to keep the main thread alive while it's playing.
-    std::thread::sleep(std::time::Duration::from_secs(5));
+    // tokio::time::sleep(std::time::Duration::from_secs(5)).await;
 }
 
 /// Lists all sounds in the [`BASE_PATH`] directory, returning a [`Vec`] of [`Sound`] structs.
