@@ -1,3 +1,5 @@
+mod db;
+
 use anyhow::Result;
 use axum::{
     extract::Path,
@@ -45,7 +47,6 @@ struct Sound {
 /// Spawns a new child process and returns immediately.  
 /// Multiple sounds are prevented by using a global lock.
 pub fn play_sound_from_path(filepath: &str) {
-    // let _lock = AUDIO_LOCK.lock().unwrap();
     // Command::new("mplayer")
     //     .args(&[
     //         "-really-quiet",
@@ -69,11 +70,21 @@ pub fn play_sound_from_path(filepath: &str) {
 
     // HACK Play the sound directly on the device in a new thread.
     std::thread::spawn(move || {
+        // This lock is used to avoid playing multiple sounds at the same time.
+        // It can be safely removed, if playing multiple sounds at the same time is desired.
+        let Ok(_nyaaa) = AUDIO_LOCK.try_lock() else {
+            // log::warn!("Failed to lock audio lock, another sound is playing");
+            return;
+        };
+
         stream_handle.play_raw(convert_samples).unwrap();
 
         // The sound plays in a separate audio thread,
         // so we need to keep the main thread alive while it's playing.
         std::thread::sleep(std::time::Duration::from_secs(5));
+
+        // Do this explicitly for clarity
+        drop(_nyaaa);
     })
     .join()
     .unwrap();
@@ -160,35 +171,9 @@ async fn handle_killall_mplayer() -> Json<Value> {
     Json(json!({ "status": "ok", "message": "Killed all mplayer instances" }))
 }
 
-fn make_some_db() -> Result<Connection> {
-    let db = Connection::open("sounds.db")?;
-
-    db.execute(
-        "CREATE TABLE IF NOT EXISTS sounds (
-            id UID PRIMARY KEY,
-            name TEXT NOT NULL,
-            path TEXT NOT NULL,
-            md5sum BLOB NOT NULL
-        )",
-        [],
-    )?;
-
-    db.execute(
-        "CREATE TABLE IF NOT EXISTS sound_events (
-            id UID PRIMARY KEY,
-            sound_id UID NOT NULL,
-            timestamp DATETIME NOT NULL,
-            FOREIGN KEY (sound_id) REFERENCES sounds(id)
-        )",
-        [],
-    )?;
-
-    Ok(db)
-}
-
 #[tokio::main]
 async fn main() -> Result<()> {
-    let db = Arc::new(Mutex::new(make_some_db()?));
+    let db_con = Arc::new(Mutex::new(db::make_some_db()?));
 
     let app = Router::new()
         .nest(
@@ -208,7 +193,7 @@ async fn main() -> Result<()> {
             "/",
             ServeDir::new("dist").not_found_service(ServeFile::new("dist/index.html")),
         )
-        .with_state(db);
+        .with_state(db_con);
 
     // run it with hyper on localhost:3000
     // axum::Server::bind(&"192.168.127.246:80".parse().unwrap())
