@@ -40,13 +40,15 @@ lazy_static! {
 struct Sound {
     name: String,
     path: String,
+    md5sum: [u8; 16],
+    id: i64,
 }
 
 /// Plays a sound from a given path using `mplayer`
 ///
 /// Spawns a new child process and returns immediately.  
 /// Multiple sounds are prevented by using a global lock.
-pub fn play_sound_from_path(filepath: &str) {
+pub fn play_sound_from_path(filepath: &str) -> bool {
     // Command::new("mplayer")
     //     .args(&[
     //         "-really-quiet",
@@ -69,12 +71,12 @@ pub fn play_sound_from_path(filepath: &str) {
     };
 
     // HACK Play the sound directly on the device in a new thread.
-    std::thread::spawn(move || {
+    let has_played = std::thread::spawn(move || {
         // This lock is used to avoid playing multiple sounds at the same time.
         // It can be safely removed, if playing multiple sounds at the same time is desired.
         let Ok(_nyaaa) = AUDIO_LOCK.try_lock() else {
             // log::warn!("Failed to lock audio lock, another sound is playing");
-            return;
+            return false;
         };
 
         stream_handle.play_raw(convert_samples).unwrap();
@@ -85,6 +87,7 @@ pub fn play_sound_from_path(filepath: &str) {
 
         // Do this explicitly for clarity
         drop(_nyaaa);
+        true
     })
     .join()
     .unwrap();
@@ -93,10 +96,11 @@ pub fn play_sound_from_path(filepath: &str) {
     // The sound plays in a separate audio thread,
     // so we need to keep the main thread alive while it's playing.
     // tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+    has_played
 }
 
 /// Lists all sounds in the [`BASE_PATH`] directory, returning a [`Vec`] of [`Sound`] structs.
-fn get_sounds_list() -> Vec<Sound> {
+fn get_sounds_list_from_disk() -> Vec<Sound> {
     let mut sounds = Vec::new();
     for entry in fs::read_dir(&*BASE_PATH).unwrap() {
         if let Ok(entry) = entry {
@@ -104,9 +108,14 @@ fn get_sounds_list() -> Vec<Sound> {
                 let filepath = entry.path();
                 let fname = filepath.strip_prefix(&*BASE_PATH).unwrap_or(&filepath);
                 let fname = fname.to_str().unwrap_or("");
+                let file_contents_bin = fs::read(&filepath).unwrap();
+                let digest: [u8; 16] = md5::compute(&file_contents_bin).0;
+                let md5sum = format!("{:x}", digest);
                 sounds.push(Sound {
                     name: filename.to_string(),
                     path: fname.to_string(),
+                    md5sum,
+                    id: 0,
                 });
             }
         }
@@ -116,7 +125,7 @@ fn get_sounds_list() -> Vec<Sound> {
 
 /// API endpoint for listing all sounds on `/api/sounds`
 async fn sounds_handler() -> Json<Value> {
-    let sounds = get_sounds_list();
+    let sounds = get_sounds_list_from_disk();
     let response = json!(sounds);
     Json(response)
 }
@@ -154,8 +163,8 @@ async fn handle_play_sound(Path(sound_path): Path<String>) -> Json<Value> {
     if filepath.exists() {
         dbg!("exists");
         // let _lock = AUDIO_LOCK.lock().unwrap();
-        play_sound_from_path(&sound_path);
-        Json(json!({ "status": "ok" }))
+        let has_played = play_sound_from_path(&sound_path);
+        Json(json!({ "status": "ok", "has_played": has_played }))
     } else {
         dbg!("not exists");
         Json(json!({ "status": "error", "message": "File not found" }))

@@ -17,6 +17,7 @@ anyhow = "1.0.79"
 axum = { version = "0.6.20", features = ["http2", "ws"] }
 hyper = { version = "0.14.27", features = ["full"] }
 lazy_static = "1.4.0"
+md5 = "0.7.0"
 rodio = "0.17.3"
 rusqlite = "0.30.0"
 serde = { version = "1.0.183", features = ["derive"] }
