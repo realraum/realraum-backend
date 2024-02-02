@@ -2,10 +2,10 @@ mod db;
 
 use anyhow::{Context, Result};
 use axum::{
-    extract::Path,
+    extract::{Path, State},
     http::{StatusCode, Uri},
     routing::{any, get},
-    Extension, Json, Router,
+    Json, Router,
 };
 use lazy_static::lazy_static;
 use rodio::{source::Source, Decoder, OutputStream};
@@ -132,7 +132,7 @@ fn index_sounds_from_disk(base_path: &PathBuf) -> Vec<Sound> {
 }
 
 /// API endpoint for listing all sounds on `/api/sounds`
-async fn sounds_handler(Extension(db): Extension<Arc<Mutex<Connection>>>) -> Json<Value> {
+async fn sounds_handler(State(db): State<Arc<Mutex<Connection>>>) -> Json<Value> {
     let sounds = db::get_sounds_list(&db.lock().unwrap()).unwrap();
     let response = json!(sounds);
     Json(response)
@@ -164,7 +164,7 @@ struct PlaySoundPayload {
 
 async fn handle_play_sound(
     Path(sound_path): Path<String>,
-    Extension(db_con): Extension<Arc<Mutex<Connection>>>,
+    State(db_con): State<Arc<Mutex<Connection>>>,
 ) -> Json<Value> {
     let mut base_path = BASE_PATH.clone();
     dbg!(&sound_path);
