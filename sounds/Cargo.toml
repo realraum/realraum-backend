@@ -15,6 +15,7 @@ include = ["/src", "/Cargo.toml", "/README.md", "/LICENSE.md"]
 [dependencies]
 anyhow = "1.0.79"
 axum = { version = "0.6.20", features = ["http2", "ws"] }
+chrono = { version = "0.4.33", features = ["serde"] }
 hyper = { version = "0.14.27", features = ["full"] }
 lazy_static = "1.4.0"
 md5 = "0.7.0"

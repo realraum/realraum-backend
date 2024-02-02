@@ -1,16 +1,17 @@
 mod db;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use axum::{
     extract::Path,
     http::{StatusCode, Uri},
     routing::{any, get},
-    Json, Router,
+    Extension, Json, Router,
 };
 use lazy_static::lazy_static;
 use rodio::{source::Source, Decoder, OutputStream};
 use rusqlite::Connection;
 // use rusqlite::NO_PARAMS;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tower_http::services::{ServeDir, ServeFile};
@@ -42,9 +43,11 @@ struct Sound {
     path: String,
     md5sum: [u8; 16],
     id: i64,
+    play_count: i64,
+    // last_played: Option<DateTime<Utc>>,
 }
 
-/// Plays a sound from a given path using `mplayer`
+/// Plays a sound from a given path using `mplayer` (not anymore, now using `rodio`).
 ///
 /// Spawns a new child process and returns immediately.  
 /// Multiple sounds are prevented by using a global lock.
@@ -100,22 +103,27 @@ pub fn play_sound_from_path(filepath: &str) -> bool {
 }
 
 /// Lists all sounds in the [`BASE_PATH`] directory, returning a [`Vec`] of [`Sound`] structs.
-fn get_sounds_list_from_disk() -> Vec<Sound> {
+fn index_sounds_from_disk(base_path: &PathBuf) -> Vec<Sound> {
     let mut sounds = Vec::new();
-    for entry in fs::read_dir(&*BASE_PATH).unwrap() {
+    println!("Searching for sounds in {}", base_path.display());
+    for entry in fs::read_dir(&*base_path).unwrap() {
         if let Ok(entry) = entry {
             if let Some(filename) = entry.file_name().to_str() {
                 let filepath = entry.path();
-                let fname = filepath.strip_prefix(&*BASE_PATH).unwrap_or(&filepath);
+                let fname = filepath.strip_prefix(&*base_path).unwrap_or(&filepath);
                 let fname = fname.to_str().unwrap_or("");
-                let file_contents_bin = fs::read(&filepath).unwrap();
-                let digest: [u8; 16] = md5::compute(&file_contents_bin).0;
-                let md5sum = format!("{:x}", digest);
+                let Ok(file_contents_bin) = fs::read(&filepath) else {
+                    // TODO handle subdirectories
+                    println!("Failed to read file {}", filename);
+                    continue;
+                };
+                let md5sum: [u8; 16] = md5::compute(&file_contents_bin).0;
                 sounds.push(Sound {
                     name: filename.to_string(),
                     path: fname.to_string(),
                     md5sum,
                     id: 0,
+                    play_count: 0,
                 });
             }
         }
@@ -124,8 +132,8 @@ fn get_sounds_list_from_disk() -> Vec<Sound> {
 }
 
 /// API endpoint for listing all sounds on `/api/sounds`
-async fn sounds_handler() -> Json<Value> {
-    let sounds = get_sounds_list_from_disk();
+async fn sounds_handler(Extension(db): Extension<Arc<Mutex<Connection>>>) -> Json<Value> {
+    let sounds = db::get_sounds_list(&db.lock().unwrap()).unwrap();
     let response = json!(sounds);
     Json(response)
 }
@@ -154,7 +162,10 @@ struct PlaySoundPayload {
     name: String,
 }
 
-async fn handle_play_sound(Path(sound_path): Path<String>) -> Json<Value> {
+async fn handle_play_sound(
+    Path(sound_path): Path<String>,
+    Extension(db_con): Extension<Arc<Mutex<Connection>>>,
+) -> Json<Value> {
     let mut base_path = BASE_PATH.clone();
     dbg!(&sound_path);
     base_path.push(&sound_path);
@@ -163,6 +174,7 @@ async fn handle_play_sound(Path(sound_path): Path<String>) -> Json<Value> {
     if filepath.exists() {
         dbg!("exists");
         // let _lock = AUDIO_LOCK.lock().unwrap();
+
         let has_played = play_sound_from_path(&sound_path);
         Json(json!({ "status": "ok", "has_played": has_played }))
     } else {
@@ -182,7 +194,16 @@ async fn handle_killall_mplayer() -> Json<Value> {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let db_con = Arc::new(Mutex::new(db::make_some_db()?));
+    let db_con = db::make_some_db()?;
+
+    for sound in index_sounds_from_disk(&BASE_PATH) {
+        let result = db::insert_sound(&db_con, &sound);
+        if result.is_ok() {
+            println!("Inserted sound {}", sound.name);
+        }
+    }
+
+    let db_con = Arc::new(Mutex::new(db_con));
 
     let app = Router::new()
         .nest(
