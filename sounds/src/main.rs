@@ -53,16 +53,20 @@ struct Sound {
 /// Spawns a new child process and returns immediately.  
 /// Multiple sounds are prevented by using a global lock.
 pub fn play_sound_from_path(filepath: &str) -> bool {
-    // Command::new("mplayer")
-    //     .args(&[
-    //         "-really-quiet",
-    //         "-nolirc",
-    //         "-ao",
-    //         "alsa",
-    //         &format!("{}/{}", BASE_PATH.display(), filepath),
-    //     ])
-    //     .spawn()
-    //     .expect("Failed to execute mplayer");
+    Command::new("mplayer")
+        .args(&[
+            "-really-quiet",
+            "-nolirc",
+            "-ao",
+            "alsa",
+            &format!("{}/{}", BASE_PATH.display(), filepath),
+        ])
+        .spawn()
+        .expect("Failed to execute mplayer");
+
+    // TODO migrate back to rodio once cancelling sounds is implemented,
+    //  and once the 5 second sleep hack has been removed.
+    return true;
 
     // Get a output stream handle to the default physical sound device
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
