@@ -41,6 +41,7 @@ lazy_static! {
 struct Sound {
     name: String,
     path: String,
+    #[serde(skip)]
     md5sum: [u8; 16],
     id: i64,
     play_count: i64,
@@ -176,7 +177,18 @@ async fn handle_play_sound(
         // let _lock = AUDIO_LOCK.lock().unwrap();
 
         let has_played = play_sound_from_path(&sound_path);
-        Json(json!({ "status": "ok", "has_played": has_played }))
+        if has_played {
+            let db = db_con.lock().unwrap();
+            let sound = db::get_sound_by_name(&db, &sound_path).unwrap().unwrap();
+            db::increment_play_count(&db, sound.id).unwrap();
+            Json(json!({ "status": "ok", "has_played": has_played }))
+        } else {
+            Json(json!({
+                "status": "error",
+                "message": "Failed to play sound",
+                "has_played": has_played
+            }))
+        }
     } else {
         dbg!("not exists");
         Json(json!({ "status": "error", "message": "File not found" }))

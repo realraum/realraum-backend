@@ -39,16 +39,17 @@ pub fn make_some_db() -> Result<Connection> {
     Ok(db)
 }
 
-// pub fn increment_play_count(db: &Connection, sound_id: i64) -> Result<()> {
-//     db.execute(
-//         "INSERT INTO sound_events (sound_id, timestamp) VALUES (?, datetime('now'))",
-//         (&sound_id,),
-//     )?;
+pub fn increment_play_count(db: &Connection, sound_id: i64) -> Result<()> {
+    db.execute(
+        "UPDATE sounds SET play_count = play_count + 1 WHERE id = ?",
+        &[&sound_id],
+    )
+    .context("Failed to increment play count")?;
 
-//     Ok(())
-// }
+    Ok(())
+}
 
-pub fn get_sound_id_by_name(db: &Connection, name: &str) -> Result<Option<Sound>> {
+pub fn get_sound_by_name(db: &Connection, name: &str) -> Result<Option<Sound>> {
     let mut stmt = db.prepare("SELECT * FROM sounds WHERE name = ?")?;
     let mut rows = stmt.query(&[&name])?;
 
