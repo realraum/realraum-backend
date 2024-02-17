@@ -15,10 +15,17 @@ use crate::{db, playback::play_sound_from_path, BASE_PATH};
 pub async fn html_page_handler(State(db): State<Arc<Mutex<Connection>>>) -> impl IntoResponse {
     let sounds = db::get_sounds_list(&db.lock().unwrap()).unwrap();
 
-    let mut html = String::from("<html><head><title>Realraum Sounds</title></head><body>");
+    let mut html = String::from(
+        "<html><head><title>realraum Sounds</title></head><body><h1>realraum Sounds</h1>",
+    );
+
+    html.push_str(&format!(
+        "<p>Version {} &nbsp; - &nbsp;",
+        env!("CARGO_PKG_VERSION")
+    ));
 
     html.push_str(
-        "<a href=\"/compat-sounds/api-c1/killall_mplayer\">Kill all mplayer instances</a><br>",
+        "<a href=\"/compat-sounds/api-c1/killall_mplayer\">Kill all mplayer instances</a></p>",
     );
 
     let mut sounds = sounds;

@@ -1,6 +1,6 @@
 [package]
 name = "realraum_backend_sounds"
-version = "0.0.0"
+version = "0.1.0"
 edition = "2021"
 authors = ["Tanja <rust@tanja.pw>"]
 description = "A sound-playing server backend for Realraum"
