@@ -9,7 +9,7 @@ use axum::{
 };
 use rusqlite::Connection;
 
-use crate::{db, playback::play_sound_from_path, BASE_PATH};
+use crate::{data::Sound, db, playback::play_sound_from_path, BASE_PATH};
 
 /// API endpoint for listing all sounds on `/api/sounds`
 pub async fn html_page_handler(State(db): State<Arc<Mutex<Connection>>>) -> impl IntoResponse {
@@ -25,21 +25,33 @@ pub async fn html_page_handler(State(db): State<Arc<Mutex<Connection>>>) -> impl
     ));
 
     html.push_str(
-        "<a href=\"/compat-sounds/api-c1/killall_mplayer\">Kill all mplayer instances</a></p>",
+        "<a href=\"/compat-sounds/api-c1/killall_mplayer\">Kill all mplayer instances</a></p><table>",
     );
 
     let mut sounds = sounds;
     sounds.sort_unstable_by(|a, b| a.name.cmp(&b.name));
     sounds.sort_by(|a, b| b.play_count.cmp(&a.play_count));
 
-    for sound in sounds {
-        html.push_str(&format!(
-            "<a href=\"/compat-sounds/api-c1/play/{}\">{}</a> (played {} times)<br>",
-            sound.name, sound.name, sound.play_count
-        ));
+    fn format_table_cell(sound: &Sound) -> String {
+        let Sound {
+            name,
+            path,
+            play_count,
+            ..
+        } = sound;
+
+        format!("<td><a href=\"/compat-sounds/api-c1/play/{path}\">{name}</a> ({play_count} plays)</td>")
     }
 
-    html.push_str("</body></html>");
+    for sound_batch in sounds.chunks(3) {
+        html.push_str("<tr>");
+        for sound in sound_batch {
+            html.push_str(&format_table_cell(sound));
+        }
+        html.push_str("</tr>");
+    }
+
+    html.push_str("</table></body></html>");
 
     Html(html)
 }
