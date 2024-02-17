@@ -3,7 +3,7 @@ use rusqlite::Connection;
 
 use anyhow::{Context, Result};
 
-use crate::data::{self, Sound};
+use crate::data::{self};
 
 pub fn make_some_db() -> Result<Connection> {
     let db = Connection::open("sounds.db")?;

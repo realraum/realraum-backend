@@ -42,7 +42,7 @@ pub async fn sounds_handler(State(db): State<Arc<Mutex<Connection>>>) -> Json<Va
 /*
 pub async fn play_sound_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
     let filename = req.uri().path().trim_start_matches("/play/");
-    let filepath = format!("{}/{}", BASEPATH, filename);
+    let filepath = format!("{}/{}", BASE_PATH, filename);
     if Path::new(&filepath).exists() {
         let _lock = AUDIO_LOCK.lock().unwrap();
         thread::spawn(move || play_sound_from_path(filename));
