@@ -1,6 +1,11 @@
 {
     "cSpell.words": [
         "axum",
-        "rusqlite"
+        "chrono",
+        "DATETIME",
+        "killall",
+        "mplayer",
+        "rusqlite",
+        "welcomesounds"
     ]
 }
