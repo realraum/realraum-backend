@@ -1,8 +1,8 @@
-use super::*;
-
 use std::fs;
 
 use std::path::PathBuf;
+
+use crate::data;
 
 /// Lists all sounds in the [`BASE_PATH`] directory, returning a [`Vec`] of [`Sound`] structs.
 pub(crate) fn index_sounds_from_disk(base_path: &PathBuf) -> Vec<data::Sound> {

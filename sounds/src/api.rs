@@ -1,6 +1,18 @@
-use crate::playback::play_sound_from_path;
+use std::{
+    process::Command,
+    sync::{Arc, Mutex},
+};
 
-use super::*;
+use axum::{
+    extract::{Path, State},
+    Json,
+};
+use hyper::{StatusCode, Uri};
+use rusqlite::Connection;
+use serde::Deserialize;
+use serde_json::{json, Value};
+
+use crate::{db, playback::play_sound_from_path, BASE_PATH};
 
 pub async fn fallback(_: Uri) -> (StatusCode, Json<Value>) {
     (

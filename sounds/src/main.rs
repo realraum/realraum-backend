@@ -1,34 +1,23 @@
+use std::{
+    env,
+    net::SocketAddr,
+    path::{Path, PathBuf},
+    sync::{Arc, Mutex},
+};
+
+use anyhow::Result;
+use axum::{
+    routing::{any, get},
+    Router,
+};
+use lazy_static::lazy_static;
+use tower_http::services::{ServeDir, ServeFile};
+
 mod api;
 mod data;
 mod db;
 mod files;
 mod playback;
-
-use anyhow::{Context, Result};
-use axum::{
-    extract::{Path, State},
-    http::{StatusCode, Uri},
-    routing::{any, get},
-    Json, Router,
-};
-use lazy_static::lazy_static;
-// use rodio::{source::Source, Decoder, OutputStream};
-use rusqlite::Connection;
-// use rusqlite::NO_PARAMS;
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
-use tower_http::services::{ServeDir, ServeFile};
-
-use std::{
-    env,
-    fs::{self, File},
-    io::BufReader,
-    net::SocketAddr,
-    path::{Path as FsPath, PathBuf},
-    process::Command,
-    sync::{Arc, Mutex},
-};
 
 const BASE_PATH_FALLBACK: &str = "/home/realraum/welcomesounds";
 
@@ -36,8 +25,8 @@ lazy_static! {
     static ref AUDIO_LOCK: Mutex<()> = Mutex::new(());
     pub static ref BASE_PATH: PathBuf = env::var("R3_SOUNDS_BASE_PATH")
         .map_err(|_| ())
-        .and_then(|s| FsPath::new(&s).canonicalize().map_err(|_| ()))
-        .unwrap_or_else(|_| FsPath::new(BASE_PATH_FALLBACK).to_path_buf());
+        .and_then(|s| Path::new(&s).canonicalize().map_err(|_| ()))
+        .unwrap_or_else(|_| Path::new(BASE_PATH_FALLBACK).to_path_buf());
     // static ref PIPE_OGG
 }
 
