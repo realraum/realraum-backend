@@ -856,6 +856,7 @@ dependencies = [
 name = "realraum_backend_projector"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
  "axum",
  "hyper",
  "lazy_static",

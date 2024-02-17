@@ -13,6 +13,7 @@ license = "AGPL-3.0-or-later"
 include = ["/src", "/Cargo.toml", "/README.md", "/LICENSE.md"]
 
 [dependencies]
+anyhow = "1.0.79"
 axum = { version = "0.6.20", features = ["http2", "ws"] }
 hyper = { version = "0.14.27", features = ["full"] }
 lazy_static = "1.4.0"

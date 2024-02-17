@@ -3,6 +3,7 @@ use std::{
     net::{Ipv4Addr, SocketAddr},
 };
 
+use anyhow::Result;
 use axum::{
     http::HeaderValue,
     routing::{any, get},
@@ -129,8 +130,9 @@ async fn main() -> Result<()> {
 
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
-        .await
-        .unwrap();
+        .await?;
+
+    Ok(())
 }
 
 // async fn handle_command(command: Command, connection: Arc<Mutex<TcpStream>>) -> Json<Value> {
