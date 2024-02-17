@@ -1,3 +1,10 @@
+mod api;
+mod compat;
+mod data;
+mod db;
+mod files;
+mod playback;
+
 use std::{
     env,
     net::SocketAddr,
@@ -12,12 +19,6 @@ use axum::{
 };
 use lazy_static::lazy_static;
 use tower_http::services::{ServeDir, ServeFile};
-
-mod api;
-mod data;
-mod db;
-mod files;
-mod playback;
 
 const BASE_PATH_FALLBACK: &str = "/home/realraum/welcomesounds";
 
@@ -55,6 +56,17 @@ async fn main() -> Result<()> {
                         .route("/killall_mplayer", get(api::handle_killall_mplayer))
                         .route("/sounds", get(api::sounds_handler))
                         .route("/play/*name", get(api::handle_play_sound)),
+                ),
+        )
+        .nest(
+            "/compat-sounds",
+            Router::new()
+                .route("/", get(compat::html_page_handler))
+                .nest(
+                    "/api-c1",
+                    Router::new()
+                        .route("/killall_mplayer", get(compat::handle_killall_mplayer))
+                        .route("/play/*name", get(compat::handle_play_sound)),
                 ),
         )
         .nest_service(
