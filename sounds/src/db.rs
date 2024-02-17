@@ -3,7 +3,7 @@ use rusqlite::Connection;
 
 use anyhow::{Context, Result};
 
-use crate::Sound;
+use crate::data::{self, Sound};
 
 pub fn make_some_db() -> Result<Connection> {
     let db = Connection::open("sounds.db")?;
@@ -49,7 +49,7 @@ pub fn increment_play_count(db: &Connection, sound_id: i64) -> Result<()> {
     Ok(())
 }
 
-pub fn get_sound_by_name(db: &Connection, name: &str) -> Result<Option<Sound>> {
+pub fn get_sound_by_name(db: &Connection, name: &str) -> Result<Option<data::Sound>> {
     let mut stmt = db.prepare("SELECT * FROM sounds WHERE name = ?")?;
     let mut rows = stmt.query(&[&name])?;
 
@@ -57,7 +57,7 @@ pub fn get_sound_by_name(db: &Connection, name: &str) -> Result<Option<Sound>> {
         // let timestamp: Option<i64> = row.get(5)?;
         // let a = Utc::now();
         // let last_played = timestamp.map(|ts| DateTime::from(ts));
-        Ok(Some(Sound {
+        Ok(Some(data::Sound {
             id: row.get(0)?,
             name: row.get(1)?,
             path: row.get(2)?,
@@ -70,12 +70,12 @@ pub fn get_sound_by_name(db: &Connection, name: &str) -> Result<Option<Sound>> {
     }
 }
 
-pub fn get_sound_by_id(db: &Connection, id: i64) -> Result<Option<Sound>> {
+pub fn get_sound_by_id(db: &Connection, id: i64) -> Result<Option<data::Sound>> {
     let mut stmt = db.prepare("SELECT * FROM sounds WHERE id = ?")?;
     let mut rows = stmt.query(&[&id])?;
 
     if let Some(row) = rows.next()? {
-        Ok(Some(Sound {
+        Ok(Some(data::Sound {
             id: row.get(0)?,
             name: row.get(1)?,
             path: row.get(2)?,
@@ -87,13 +87,13 @@ pub fn get_sound_by_id(db: &Connection, id: i64) -> Result<Option<Sound>> {
     }
 }
 
-pub fn get_sounds_list(db: &Connection) -> Result<Vec<Sound>> {
+pub fn get_sounds_list(db: &Connection) -> Result<Vec<data::Sound>> {
     let mut stmt = db
         .prepare("SELECT * FROM sounds")
         .context("Failed to prepare get_sounds_list")?;
     let rows = stmt
         .query_map([], |row| {
-            Ok(Sound {
+            Ok(data::Sound {
                 id: row.get(0)?,
                 name: row.get(1)?,
                 path: row.get(2)?,
@@ -111,7 +111,7 @@ pub fn get_sounds_list(db: &Connection) -> Result<Vec<Sound>> {
     Ok(sounds)
 }
 
-pub fn insert_sound(db: &Connection, sound: &Sound) -> Result<()> {
+pub fn insert_sound(db: &Connection, sound: &data::Sound) -> Result<()> {
     db.execute(
         "INSERT INTO sounds (name, path, md5sum, play_count) VALUES (?, ?, ?, ?)",
         (&sound.name, &sound.path, &sound.md5sum, &sound.play_count),
