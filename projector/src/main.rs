@@ -53,12 +53,11 @@ async fn main() -> Result<()> {
                             Router::new()
                                 .route("/vga_a", get(|| handle_command(input::VGA_A)))
                                 .route("/vga_b", get(|| handle_command(input::VGA_B)))
-                                .route("/composite", get(|| handle_command(input::COMPOSITE)))
+                                .route("/composite_1", get(|| handle_command(input::COMPOSITE_1)))
+                                .route("/composite_2", get(|| handle_command(input::COMPOSITE_2)))
                                 .route("/s_video", get(|| handle_command(input::S_VIDEO)))
                                 .route("/hdmi", get(|| handle_command(input::HDMI)))
-                                .route("/wireless", get(|| handle_command(input::WIRELESS)))
-                                .route("/usb_display", get(|| handle_command(input::USB_DISPLAY)))
-                                .route("/usb_viewer", get(|| handle_command(input::USB_VIEWER))),
+                                .route("/source_button", get(|| handle_command(input::SOURCE_BUTTON)))
                         )
                         .nest(
                             "/volume",
@@ -80,17 +79,10 @@ async fn main() -> Result<()> {
                                 .route("/menu_button", get(|| handle_command(menu::MENU_BUTTON)))
                                 .route("/up", get(|| handle_command(menu::UP)))
                                 .route("/down", get(|| handle_command(menu::DOWN)))
-                                .route(
-                                    "/left",
-                                    get(|| handle_command(menu::LEFT)),
-                                    // .route(
-                                    //     "/left",
-                                    //     get(|State(state): State<Arc<Mutex<TcpStream>>>| {
-                                    //         handle_command(menu::LEFT, state)
-                                    //     }),
-                                )
+                                .route("/left", get(|| handle_command(menu::LEFT)))
                                 .route("/right", get(|| handle_command(menu::RIGHT)))
-                                .route("/ok", get(|| handle_command(menu::OK))),
+                                .route("/ok", get(|| handle_command(menu::OK)))
+                                .route("/auto_button", get(|| handle_command(menu::AUTO_BUTTON))),
                         )
                         .nest(
                             "/picture",
@@ -100,18 +92,13 @@ async fn main() -> Result<()> {
                                 .route("/freeze", get(|| handle_command(picture::FREEZE)))
                                 .route("/un_freeze", get(|| handle_command(picture::UN_FREEZE)))
                                 .route("/contrast_up", get(|| handle_command(picture::CONTRAST_UP)))
-                                .route(
-                                    "/contrast_down",
-                                    get(|| handle_command(picture::CONTRAST_DOWN)),
-                                )
-                                .route(
-                                    "/brightness_up",
-                                    get(|| handle_command(picture::BRIGHTNESS_UP)),
-                                )
-                                .route(
-                                    "/brightness_down",
-                                    get(|| handle_command(picture::BRIGHTNESS_DOWN)),
-                                ),
+                                .route("/contrast_down", get(|| handle_command(picture::CONTRAST_DOWN)))
+                                .route("/brightness_up", get(|| handle_command(picture::BRIGHTNESS_UP)))
+                                .route("/brightness_down", get(|| handle_command(picture::BRIGHTNESS_DOWN)))
+                                .route("/color_up", get(|| handle_command(picture::COLOR_UP)))
+                                .route("/color_down", get(|| handle_command(picture::COLOR_DOWN)))
+                                .route("/sharpness_up", get(|| handle_command(picture::SHARPNESS_UP)))
+                                .route("/sharpness_down", get(|| handle_command(picture::SHARPNESS_DOWN)))
                         ),
                 ),
         )

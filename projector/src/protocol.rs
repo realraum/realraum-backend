@@ -35,6 +35,7 @@ pub mod commands {
         pub const COMPOSITE_2: Command = make_command(0xd2, constants::PROJECTOR_SUFFIX); // Component 2
         pub const S_VIDEO: Command = make_command(0xcf, constants::PROJECTOR_SUFFIX); // S-Video
         pub const HDMI: Command = make_command(0xcd, constants::PROJECTOR_SUFFIX); // HDMI
+        pub const SOURCE_BUTTON: Command = make_command(0x6f, 0x17);
     }
 
     pub mod volume {
@@ -62,6 +63,7 @@ pub mod commands {
         pub const LEFT: Command = make_command(0x20, constants::MENU_SUFFIX);
         pub const RIGHT: Command = make_command(0x21, constants::MENU_SUFFIX);
         pub const OK: Command = make_command(0x23, constants::MENU_SUFFIX);
+        pub const AUTO_BUTTON: Command = make_command(0x32, constants::MENU_SUFFIX);
     }
 
     pub mod picture {
@@ -75,17 +77,10 @@ pub mod commands {
         pub const CONTRAST_DOWN: Command = make_command(0xf7, constants::PROJECTOR_SUFFIX);
         pub const BRIGHTNESS_UP: Command = make_command(0xf5, constants::PROJECTOR_SUFFIX);
         pub const BRIGHTNESS_DOWN: Command = make_command(0xf4, constants::PROJECTOR_SUFFIX);
-    }
-
-    pub mod new {
-        use super::super::{constants, make_command, Command};
-
-        // pub const Auto_Button: Command = make_command(0x32, constants::MENU_SUFFIX); ???
-        // pub const Source_Button: Command = make_command(0x6f, 0x17); ???
-        // pub const ColorUp: Command = make_command(0xf2, constants::PROJECTOR_SUFFIX); ???
-        // pub const ColorDown: Command = make_command(0xf3, constants::PROJECTOR_SUFFIX); ???
-        // pub const SharpnessUp: Command = make_command(0xf8, constants::PROJECTOR_SUFFIX); ???
-        // pub const SharpnessDown: Command = make_command(0xf9, constants::PROJECTOR_SUFFIX); ???
+        pub const COLOR_UP: Command = make_command(0xf2, constants::PROJECTOR_SUFFIX);
+        pub const COLOR_DOWN: Command = make_command(0xf3, constants::PROJECTOR_SUFFIX);
+        pub const SHARPNESS_UP: Command = make_command(0xf8, constants::PROJECTOR_SUFFIX);
+        pub const SHARPNESS_DOWN: Command = make_command(0xf9, constants::PROJECTOR_SUFFIX);
     }
 }
 
