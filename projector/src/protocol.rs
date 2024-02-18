@@ -29,16 +29,12 @@ pub mod commands {
     pub mod input {
         use super::super::{constants, make_command, Command};
 
-        // FIXME these may not work on all projectors
-
-        pub const VGA_A: Command = make_command(0xcd, constants::PROJECTOR_SUFFIX);
-        pub const VGA_B: Command = make_command(0xce, constants::PROJECTOR_SUFFIX);
-        pub const COMPOSITE: Command = make_command(0xcf, constants::PROJECTOR_SUFFIX);
-        pub const S_VIDEO: Command = make_command(0xd0, constants::PROJECTOR_SUFFIX);
-        pub const HDMI: Command = make_command(0xd1, constants::PROJECTOR_SUFFIX);
-        pub const WIRELESS: Command = make_command(0xd3, constants::PROJECTOR_SUFFIX);
-        pub const USB_DISPLAY: Command = make_command(0xd4, constants::PROJECTOR_SUFFIX);
-        pub const USB_VIEWER: Command = make_command(0xd5, constants::PROJECTOR_SUFFIX);
+        pub const VGA_A: Command = make_command(0xd0, constants::PROJECTOR_SUFFIX); // PC
+        pub const VGA_B: Command = make_command(0xce, constants::PROJECTOR_SUFFIX); // VIDEO
+        pub const COMPOSITE_1: Command = make_command(0xd1, constants::PROJECTOR_SUFFIX); // Component 1
+        pub const COMPOSITE_2: Command = make_command(0xd2, constants::PROJECTOR_SUFFIX); // Component 2
+        pub const S_VIDEO: Command = make_command(0xcf, constants::PROJECTOR_SUFFIX); // S-Video
+        pub const HDMI: Command = make_command(0xcd, constants::PROJECTOR_SUFFIX); // HDMI
     }
 
     pub mod volume {
@@ -79,6 +75,17 @@ pub mod commands {
         pub const CONTRAST_DOWN: Command = make_command(0xf7, constants::PROJECTOR_SUFFIX);
         pub const BRIGHTNESS_UP: Command = make_command(0xf5, constants::PROJECTOR_SUFFIX);
         pub const BRIGHTNESS_DOWN: Command = make_command(0xf4, constants::PROJECTOR_SUFFIX);
+    }
+
+    pub mod new {
+        use super::super::{constants, make_command, Command};
+
+        // pub const Auto_Button: Command = make_command(0x32, constants::MENU_SUFFIX); ???
+        // pub const Source_Button: Command = make_command(0x6f, 0x17); ???
+        // pub const ColorUp: Command = make_command(0xf2, constants::PROJECTOR_SUFFIX); ???
+        // pub const ColorDown: Command = make_command(0xf3, constants::PROJECTOR_SUFFIX); ???
+        // pub const SharpnessUp: Command = make_command(0xf8, constants::PROJECTOR_SUFFIX); ???
+        // pub const SharpnessDown: Command = make_command(0xf9, constants::PROJECTOR_SUFFIX); ???
     }
 }
 

@@ -5,7 +5,6 @@ use std::{
 
 use anyhow::Result;
 use axum::{
-    http::HeaderValue,
     routing::{any, get},
     Json, Router,
 };
