@@ -14,10 +14,9 @@ include = ["/src", "/Cargo.toml", "/README.md", "/LICENSE.md"]
 
 [dependencies]
 anyhow = "1.0.79"
-axum = { version = "0.6.20", features = ["http2", "ws"] }
-hyper = { version = "0.14.27", features = ["full"] }
+axum = { version = "0.8.9", features = ["http2", "ws"] }
 lazy_static = "1.4.0"
 serde = { version = "1.0.183", features = ["derive"] }
 serde_json = "1.0.104"
 tokio = { version = "1.30.0", features = ["full"] }
-tower-http = { version = "0.4.4", features = ["fs", "cors", "compression-full"] }
+tower-http = { version = "0.7.1", features = ["fs", "cors", "compression-full"] }
