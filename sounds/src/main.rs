@@ -49,13 +49,13 @@ async fn main() -> Result<()> {
             "/api",
             Router::new()
                 .route("/", get(api::greeting))
-                .route("/*any", any(api::fallback))
+                .route("/{*any}", any(api::fallback))
                 .nest(
                     "/v1",
                     Router::new()
                         .route("/killall_mplayer", get(api::handle_killall_mplayer))
                         .route("/sounds", get(api::sounds_handler))
-                        .route("/play/*name", get(api::handle_play_sound)),
+                        .route("/play/{*name}", get(api::handle_play_sound)),
                 ),
         )
         .nest(
@@ -66,11 +66,10 @@ async fn main() -> Result<()> {
                     "/api-c1",
                     Router::new()
                         .route("/killall_mplayer", get(compat::handle_killall_mplayer))
-                        .route("/play/*name", get(compat::handle_play_sound)),
+                        .route("/play/{*name}", get(compat::handle_play_sound)),
                 ),
         )
-        .nest_service(
-            "/",
+        .fallback_service(
             ServeDir::new("dist").not_found_service(ServeFile::new("dist/index.html")),
         )
         .with_state(db_con);
@@ -84,9 +83,8 @@ async fn main() -> Result<()> {
 
     println!("Starting server on http://{addr}");
 
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
+    let listener = tokio::net::TcpListener::bind(addr).await?;
+    axum::serve(listener, app).await
         .unwrap();
 
     Ok(())

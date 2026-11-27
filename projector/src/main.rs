@@ -8,7 +8,7 @@ use axum::{
     routing::{any, get},
     Json, Router,
 };
-use hyper::{Method, StatusCode, Uri};
+use axum::http::{Method, StatusCode, Uri};
 use protocol::{
     commands::{input, menu, picture, power, volume},
     Command,
@@ -44,7 +44,7 @@ async fn main() -> Result<()> {
             "/api",
             Router::new()
                 .route("/", get(api::greeting))
-                .route("/*any", any(api::fallback))
+                .route("/{*any}", any(api::fallback))
                 .nest(
                     "/v1",
                     Router::new()
@@ -102,8 +102,7 @@ async fn main() -> Result<()> {
                         ),
                 ),
         )
-        .nest_service(
-            "/",
+        .fallback_service(
             ServeDir::new("dist").not_found_service(ServeFile::new("dist/index.html")),
         )
         // .with_state(connection)
@@ -114,9 +113,8 @@ async fn main() -> Result<()> {
         .and_then(|s| s.parse().map_err(|_| ()))
         .unwrap_or_else(|_| "0.0.0.0:4201".parse().unwrap());
 
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await?;
+    let listener = tokio::net::TcpListener::bind(addr).await?;
+    axum::serve(listener, app).await?;
 
     Ok(())
 }

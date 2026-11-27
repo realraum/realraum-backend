@@ -7,7 +7,7 @@ use axum::{
     extract::{Path, State},
     Json,
 };
-use hyper::{StatusCode, Uri};
+use axum::http::{StatusCode, Uri};
 use rusqlite::Connection;
 use serde::Deserialize;
 use serde_json::{json, Value};
